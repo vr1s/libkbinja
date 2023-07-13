@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
-add_subdirectory(binaryninja-api)
-
 ADD_LIBRARY( libkbinja STATIC
         code.cpp )
 
