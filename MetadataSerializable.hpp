@@ -177,6 +177,59 @@ protected:
         for (auto& i : m_activeDeserContext->doc[r(name)].GetArray())
             b[i.GetArray()[0].GetUint64()] = i.GetArray()[1].GetString();
     }
+    void Serialize(std::string& name, std::unordered_map<uint64_t, uint64_t> b)
+    {
+        S();
+        rapidjson::Value bArr(rapidjson::kArrayType);
+        for (auto i : b)
+        {
+            rapidjson::Value p(rapidjson::kArrayType);
+            p.PushBack(i.first, m_activeContext->allocator);
+            p.PushBack(i.second, m_activeContext->allocator);
+            bArr.PushBack(p, m_activeContext->allocator);
+        }
+        m_activeContext->doc.AddMember(r(name), bArr, m_activeContext->allocator);
+    }
+    void Deserialize(std::string& name, std::unordered_map<uint64_t, uint64_t>& b)
+    {
+        for (auto& i : m_activeDeserContext->doc[r(name)].GetArray())
+            b[i.GetArray()[0].GetUint64()] = i.GetArray()[1].GetUint64();
+    }
+    // std::unordered_map<std::string, std::unordered_map<uint64_t, uint64_t>>
+    void Serialize(std::string& name, std::unordered_map<std::string, std::unordered_map<uint64_t, uint64_t>> b)
+    {
+        S();
+        rapidjson::Value classes(rapidjson::kArrayType);
+        for (auto i : b)
+        {
+            rapidjson::Value classArr(rapidjson::kArrayType);
+            classArr.PushBack(i.first, m_activeContext->allocator);
+            rapidjson::Value membersArr(rapidjson::kArrayType);
+            for (auto j : i.second)
+            {
+                rapidjson::Value member(rapidjson::kArrayType);
+                member.PushBack(j.first, m_activeContext->allocator);
+                member.PushBack(j.second, m_activeContext->allocator);
+                membersArr.PushBack(member, m_activeContext->allocator);
+            }
+            classArr.PushBack(membersArr, m_activeContext->allocator);
+            classes.PushBack(classArr, m_activeContext->allocator);
+        }
+        m_activeContext->doc.AddMember(r(name), classes, m_activeContext->allocator);
+    }
+    void Deserialize(std::string& name, std::unordered_map<std::string, std::unordered_map<uint64_t, uint64_t>>& b)
+    {
+        for (auto& i : m_activeDeserContext->doc[r(name)].GetArray())
+        {
+            std::string name = i.GetArray()[0].GetString();
+            std::unordered_map<uint64_t, uint64_t> memArray;
+            for (auto& member : i.GetArray()[1].GetArray())
+            {
+                memArray[member.GetArray()[0].GetUint64()] = member.GetArray()[1].GetUint64();
+            }
+            b[name] = memArray;
+        }
+    }
     void Deserialize(std::string& name, std::unordered_map<std::string, std::string>& b)
     {
         for (auto& i : m_activeDeserContext->doc[r(name)].GetArray())
